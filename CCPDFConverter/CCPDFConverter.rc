@@ -82,8 +82,6 @@ LANGUAGE 9, 1
 
 #ifdef CC_PDF_CONVERTER
 #include "CCPDFConverter.rc2"
-#else
-#include "XL2PDFConverter.rc2"
 #endif
 
 #endif

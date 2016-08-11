@@ -29,12 +29,14 @@
 #include "iapi.h"
 #include <shellapi.h>
 #include <errno.h>
+#include <iostream>
 #include <stdio.h>
+#include <curl/curl.h>
 #include "Helpers.h"
 #include <io.h>
 
 #ifdef CC_PDF_CONVERTER
-#define PRODUCT_NAME	"CC PDF Converter"
+#define PRODUCT_NAME	"Nanocloud Printer"
 #elif EXCEL_TO_PDF
 #define PRODUCT_NAME	"Excel to PDF Converter"
 #else
@@ -159,12 +161,14 @@ static int GSDLLCALL my_in(void *instance, char *buf, int len)
     }
 #ifdef _DEBUG
 	// Leave a trace of the data (debug mode)
-	WriteOutput("", pStart, count);
-	if (pSave != NULL)
-	{
-		// Also save the data into the save file (debug mode)
-		fwrite(pStart, 1, count, pSave);
-	}
+	//MessageBox(NULL, pStart, PRODUCT_NAME, MB_ICONINFORMATION | MB_OK);
+
+//	WriteOutput("", pStart, count);
+//	if (pSave != NULL)
+//	{
+//		// Also save the data into the save file (debug mode)
+//		fwrite(pStart, 1, count, pSave);
+//	}
 #endif
 	// That's it
     return count;
@@ -324,7 +328,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 #ifdef _DEBUG
 	// Save a record of the original PostScript data (debug mode)
-	errno_t file_err = fopen_s (&pSave, "c:\\test.ps", "w+b");
+	//errno_t file_err = fopen_s (&pSave, "c:\\test.ps", "w+b");
 #endif
 
 	// Delete whichever temp files might exist
@@ -346,7 +350,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 #ifdef _DEBUG_CMD
 	// Sample file debug mode: open a pre-existing file
-	fileInput = fopen("c:\\test1.ps", "rb");
+	//fileInput = fopen("c:\\test1.ps", "rb");
 #else
 	// Get the data from stdin (that's where the redmon port monitor sends it)
 	fileInput = stdin;
@@ -398,7 +402,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		ARGS[5] = cFile;
 #ifdef _DEBUG
 		// Trace it (debug mode)
-		WriteOutput("FILENAME: ", cPath, nCount);
+		//WriteOutput("FILENAME: ", cPath, nCount);
 #endif
 	}
 	// Do we have an auto-file-open flag?
@@ -437,9 +441,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				CloseHandle (test);	
 				sprintf_s (cFile, sizeof(cFile), "-sOutputFile=%s", cPath);
 				ARGS[5] = cFile;
-			}			
+			}
 		}
-		
+
 		// It's possible that if something fails in the process of making a temp file, the bMakeTemp flag
 		// will be disabled in the above block and then we want to run the following block as usual.
 		if (!bMakeTemp) {
@@ -464,7 +468,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				ARGS[5] = cFile;
 #ifdef _DEBUG
 				// Also trace it (debug mode)
-				WriteOutput("FILENAME (USER): ", cPath, strlen(cPath));
+				//WriteOutput("FILENAME (USER): ", cPath, strlen(cPath));
 #endif
 			}
 			else
@@ -499,8 +503,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	gsapi_delete_instance(pGS);
 		
 #ifdef _DEBUG
+	MessageBox(NULL, cPath, PRODUCT_NAME, MB_ICONINFORMATION | MB_OK);
 	// Close the PostScript copy file (debug mode)
-	fclose(pSave);
+	//fclose(pSave);
 #endif
 #ifdef _DEBUG_CMD
 	// Close the sample file (sample file debug mode)
@@ -520,7 +525,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		// Yes, so open it
 		ShellExecute(NULL, NULL, cPath, NULL, NULL, SW_NORMAL);
 	}
-
 
 	return 0;
 }
