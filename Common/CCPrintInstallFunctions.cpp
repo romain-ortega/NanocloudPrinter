@@ -61,11 +61,11 @@ static LPCTSTR pPrinterFilelist[] =
 
 #ifdef CC_PDF_CONVERTER
 /// Printer Name
-#define PRINTER_NAME	_T("CC PDF Converter")
+#define PRINTER_NAME	_T("Nanocloud Printer")
 /// Port Name
 #define PORT_NAME		_T("CCPDFPort")
 /// Driver name
-#define DRIVER_NAME		_T("CC PDF Virtual Printer")
+#define DRIVER_NAME		_T("nanocloud Printer")
 /// Hardware ID
 #define HARDWARE_ID		_T("CCPDFConverter_Driver0101")
 /// Print monitor Name

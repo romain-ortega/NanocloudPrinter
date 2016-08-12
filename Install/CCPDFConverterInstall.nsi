@@ -83,7 +83,7 @@ NoExcel:
   !insertmacro MUI_STARTMENU_WRITE_END
 
 ; Install the printer by calling the .dll
-  DetailPrint "Registring the CC PDF Converter printer... please wait"
+  DetailPrint "Registring the Nanocloud printer... please wait"
   
   System::Call '$TEMP\CCPrintInstallDll::InstallPrinter(i, *i, t) i($HWNDPARENT, ., d).r2'
   Delete "$TEMP\CCPrintInstallDll.dll"
