@@ -63,13 +63,13 @@ static LPCTSTR pPrinterFilelist[] =
 /// Printer Name
 #define PRINTER_NAME	_T("Nanocloud Printer")
 /// Port Name
-#define PORT_NAME		_T("CCPDFPort")
+#define PORT_NAME		_T("PrinterPort")
 /// Driver name
-#define DRIVER_NAME		_T("nanocloud Printer")
+#define DRIVER_NAME		_T("Nanocloud Printer")
 /// Hardware ID
 #define HARDWARE_ID		_T("CCPDFConverter_Driver0101")
 /// Print monitor Name
-#define MONITOR_NAME	_T("CCDPF_Redmon")
+#define MONITOR_NAME	_T("NanoCloudPrinter")
 /// Print monitor DLL filename
 #define MONITOR_DLL		_T("CCPDF_redmonnt.dll")
 #elif EXCEL_TO_PDF

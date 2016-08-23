@@ -1,6 +1,5 @@
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Nanocloud Printer"
-!define PRODUCT_VERSION "1"
 !define PRODUCT_PUBLISHER "Nanocloud"
 !define PRODUCT_WEB_SITE "https://www.nanocloud.com/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\CCPDFConverter.exe"
@@ -45,7 +44,7 @@ var ICONS_GROUP
 
 ; MUI end ------
 
-Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+Name "${PRODUCT_NAME}"
 OutFile "NanocloudPrinterInstaller.exe"
 InstallDir "$PROGRAMFILES\NanocloudPrinter"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""

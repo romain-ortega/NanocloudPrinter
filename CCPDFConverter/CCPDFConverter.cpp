@@ -30,6 +30,7 @@
 #include <shellapi.h>
 #include <errno.h>
 #include <iostream>
+#include <fstream>
 #include <stdio.h>
 #include <curl/curl.h>
 #include "Helpers.h"
@@ -37,10 +38,6 @@
 
 #ifdef CC_PDF_CONVERTER
 #define PRODUCT_NAME	"Nanocloud Printer"
-#elif EXCEL_TO_PDF
-#define PRODUCT_NAME	"Excel to PDF Converter"
-#else
-#error "One of the printer types must be defined"
 #endif
 
 #ifdef _DEBUG
@@ -123,8 +120,30 @@ void CleanTempFiles ()
 	_findclose (hFind);
 }
 
-
 //////////////////////////////////////////////////////////////////////////
+
+/**
+	@brief Generate random name for output pdf file
+	@param s Buffer to fill with random string
+	@param len Length of random string to generate
+	@return Path for output file with random filename
+*/
+std::string getTmpPath() {
+	const int	randomLen = 6;
+	std::string path;
+	
+	path = "C:\\Windows\\Temp\\";
+	static const char alphanum[] =
+		"0123456789"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz";
+
+	for (int i = 0; i < randomLen; ++i) {
+		path += alphanum[rand() % (sizeof(alphanum) - 1)];
+	}
+	path += ".pdf";
+	return path;
+}
 
 /**
 	@brief Callback function used by GhostScript to retrieve more data from the input buffer; stops at newlines
@@ -230,8 +249,8 @@ void CleanInput()
 }
 
 /**
-	@brief This function will center the window on the screen
-	@param hWnd The window to center
+@brief This function will center the window on the screen
+@param hWnd The window to center
 */
 void CenterWindow(HWND hWnd)
 {
@@ -253,12 +272,12 @@ void CenterWindow(HWND hWnd)
 	// if the dialog is outside the screen, move it inside
 	if (xLeft < rcArea.left)
 		xLeft = rcArea.left;
-	else if(xLeft + WndWidth > rcArea.right)
+	else if (xLeft + WndWidth > rcArea.right)
 		xLeft = rcArea.right - WndWidth;
 
-	if(yTop < rcArea.top)
+	if (yTop < rcArea.top)
 		yTop = rcArea.top;
-	else if(yTop + WndHeight > rcArea.bottom)
+	else if (yTop + WndHeight > rcArea.bottom)
 		yTop = rcArea.bottom - WndHeight;
 
 	// map screen coordinates to child coordinates
@@ -266,34 +285,35 @@ void CenterWindow(HWND hWnd)
 }
 
 /**
-	@param hDlg Handle of the dialog
-	@param uMsg ID of the message
-	@param wParam First message paramenter
-	@param lParam Second message paramenter
-	@return TRUE if the message was handled, FALSE otherwise
+@param hDlg Handle of the dialog
+@param uMsg ID of the message
+@param wParam First message paramenter
+@param lParam Second message paramenter
+@return TRUE if the message was handled, FALSE otherwise
 */
 UINT_PTR CALLBACK SaveDlgCallback(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	// Which message?
 	switch (uMsg)
 	{
-		case WM_NOTIFY:
-			// Notification
-			{
-				LPNMHDR pNotify = (LPNMHDR)lParam;
-				if (pNotify->code == CDN_INITDONE)
-				{
-					// Initial display: center and bring to top
-					HWND hParent = ::GetParent(hDlg);
-					::BringWindowToTop(hParent);
-					SetForegroundWindow(hParent);
-					CenterWindow(hParent);
-				}
-			}
-			break;
+	case WM_NOTIFY:
+		// Notification
+	{
+		LPNMHDR pNotify = (LPNMHDR)lParam;
+		if (pNotify->code == CDN_INITDONE)
+		{
+			// Initial display: center and bring to top
+			HWND hParent = ::GetParent(hDlg);
+			::BringWindowToTop(hParent);
+			SetForegroundWindow(hParent);
+			CenterWindow(hParent);
+		}
+	}
+	break;
 	}
 	return FALSE;
 }
+
 
 /// Command line options used by GhostScript
 const char* ARGS[] =
@@ -320,7 +340,10 @@ const char* ARGS[] =
 */
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	srand(time(NULL));
 	// Initialize stuff
+	std::string randomPath = getTmpPath();
+	const char *constRandomPath = randomPath.c_str();
 	char cPath[MAX_PATH + 1];
 	char cFile[MAX_PATH + 128];
 	char cInclude[3 * MAX_PATH + 7];
@@ -333,7 +356,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Delete whichever temp files might exist
 	CleanTempFiles();
-
 	// Add the include directories to the command line flags we'll use with GhostScript:
 	if (::GetModuleFileName(NULL, cPath, MAX_PATH))
 	{
@@ -344,7 +366,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		else
 			cPath[0] = '\0';
 		// OK, add the fonts and lib folders:
-		sprintf_s (cInclude, sizeof(cInclude), "-I%s\\urwfonts;%s\\lib", cPath, cPath);
+		sprintf_s(cInclude, sizeof(cInclude), "-I%s\\urwfonts;%s\\lib", cPath, cPath);
 		ARGS[6] = cInclude;
 	}
 
@@ -400,10 +422,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 		sprintf_s(cFile, sizeof(cFile), "-sOutputFile=%s", cPath);
 		ARGS[5] = cFile;
-#ifdef _DEBUG
-		// Trace it (debug mode)
-		//WriteOutput("FILENAME: ", cPath, nCount);
-#endif
 	}
 	// Do we have an auto-file-open flag?
 	if ((nBuffer - nInBuffer > 14) && ((!strncmp(cBuffer + nInBuffer, "%%FileAutoOpen", 14)) || (!strncmp(cBuffer + nInBuffer, "%%CreateAsTemp", 14))))
@@ -422,64 +440,39 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			return 0;
 		}
 	}
-	
-	// Did we find a filename?
+
 	if (cPath[0] == '\0')
 	{
 		// Do we make it a temp file?
 		if (bMakeTemp) {
 			char sTempFolder[MAX_PATH];
 			GetTempPath(MAX_PATH, sTempFolder);
-			sprintf_s (cPath, MAX_PATH, "%s%s%u.%s", sTempFolder, TEMP_FILENAME, GetTickCount(), TEMP_EXTENSION);
-			
-			HANDLE test = CreateFile (cPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
+			sprintf_s(cPath, MAX_PATH, "%s%s%u.%s", sTempFolder, TEMP_FILENAME, GetTickCount(), TEMP_EXTENSION);
+
+			HANDLE test = CreateFile(cPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
 			if (test == INVALID_HANDLE_VALUE) {
 				// If we can't write this file, for some reason:
 				bMakeTemp = false;
 			}
 			else {
-				CloseHandle (test);	
-				sprintf_s (cFile, sizeof(cFile), "-sOutputFile=%s", cPath);
+				CloseHandle(test);
+				sprintf_s(cFile, sizeof(cFile), "-sOutputFile=%s", cPath);
 				ARGS[5] = cFile;
 			}
 		}
 
 		// It's possible that if something fails in the process of making a temp file, the bMakeTemp flag
 		// will be disabled in the above block and then we want to run the following block as usual.
-		if (!bMakeTemp) {
-			// Ask the user for a file name:
-			OPENFILENAME info;
-			memset(&info, 0, sizeof(info));
-			info.lStructSize = sizeof(info);
-			info.hInstance = hInstance;
-			info.lpstrFilter = "PDF Files (*.pdf)\0*.pdf\0All Files (*.*)\0*.*\0\0";
-			info.lpstrFile = cPath;
-			info.nMaxFile = MAX_PATH + 1;
-			info.lpstrTitle = "Select a filename to write into";
-			info.Flags = OFN_ENABLESIZING|OFN_EXPLORER|OFN_NOREADONLYRETURN|OFN_OVERWRITEPROMPT|OFN_PATHMUSTEXIST|OFN_ENABLEHOOK;
-			info.lpstrDefExt = "pdf";
-			// We want a hook function to center the window and bring it on top
-			info.lpfnHook = SaveDlgCallback;
-
-			if (GetSaveFileName(&info))
-			{
-				// OK, get a filename, write it up
-				sprintf_s (cFile, sizeof(cFile), "-sOutputFile=%s", cPath);
-				ARGS[5] = cFile;
-#ifdef _DEBUG
-				// Also trace it (debug mode)
-				//WriteOutput("FILENAME (USER): ", cPath, strlen(cPath));
-#endif
-			}
-			else
-			{
-				// Continue reading until to end so we won't have a problem
-				CleanInput();
-				return 0;
-			}
+		if (!bMakeTemp) 
+		{
+			strcpy(cPath, constRandomPath);
+			fopen(constRandomPath, "w+b");
+			sprintf_s(cFile, sizeof(cFile), "-sOutputFile=%s", cPath);
+			ARGS[5] = cFile;
 		}
 	}
 
+	
 	// First try to initialize a new GhostScript instance
 	void* pGS;
 	if (gsapi_new_instance(&pGS, NULL) < 0)
@@ -503,7 +496,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	gsapi_delete_instance(pGS);
 		
 #ifdef _DEBUG
-	MessageBox(NULL, cPath, PRODUCT_NAME, MB_ICONINFORMATION | MB_OK);
+	//MessageBox(NULL, cPath, PRODUCT_NAME, MB_ICONINFORMATION | MB_OK);
 	// Close the PostScript copy file (debug mode)
 	//fclose(pSave);
 #endif
@@ -523,7 +516,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Should we open the file (also make sure there's a handler for PDFs)
 	if (bAutoOpen && CanOpenPDFFiles()) {
 		// Yes, so open it
-		ShellExecute(NULL, NULL, cPath, NULL, NULL, SW_NORMAL);
+		ShellExecute(NULL, NULL, randomPath.c_str(), NULL, NULL, SW_NORMAL);
 	}
 
 	return 0;
