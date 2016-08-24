@@ -30,11 +30,16 @@
 #include <shellapi.h>
 #include <errno.h>
 #include <iostream>
+#include <ctime>
 #include <fstream>
 #include <stdio.h>
-#include <curl/curl.h>
+#include <cstdlib>
+#include <cstring>
+#include <boost/asio.hpp>
 #include "Helpers.h"
 #include <io.h>
+
+using boost::asio::ip::tcp;
 
 #ifdef CC_PDF_CONVERTER
 #define PRODUCT_NAME	"Nanocloud Printer"
@@ -519,5 +524,53 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		ShellExecute(NULL, NULL, randomPath.c_str(), NULL, NULL, SW_NORMAL);
 	}
 
+
+	// Send path to Photon
+	enum { max_length = MAX_PATH };
+	std::string dataToSend = "path=" + randomPath;
+
+	try
+	{
+		boost::asio::io_service io_service;
+
+		tcp::resolver resolver(io_service);
+		tcp::resolver::query query("localhost", "8180"); // "http");
+		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+		tcp::resolver::iterator end;
+
+		tcp::socket socket(io_service);
+		boost::system::error_code error = boost::asio::error::host_not_found;
+		while (error && endpoint_iterator != end)
+		{
+			socket.close();
+			socket.connect(*endpoint_iterator++, error);
+		}
+		if (error)
+			throw boost::system::system_error(error);
+
+		boost::asio::streambuf request;
+		std::ostream request_stream(&request);
+
+
+		request_stream << "POST / HTTP/1.1\r\n";
+		request_stream << "Host: " << "localhost:8180" << "\r\n";
+		request_stream << "Accept: */*\r\n";
+		request_stream << "Content-Length: " << dataToSend.size() << "\r\n";
+		request_stream << "Content-Type: application/x-www-form-urlencoded\r\n";
+		request_stream << "Connection: close\r\n\r\n";
+		request_stream << dataToSend.c_str();
+
+		// Send the request.
+		boost::asio::write(socket, request);
+
+		boost::asio::streambuf response;
+		boost::asio::read_until(socket, response, "\r\n");
+	}
+	catch (std::exception& e)
+	{
+		MessageBox(NULL, e.what(), PRODUCT_NAME, MB_ICONERROR | MB_OK);
+		return 1;
+	}
+	Sleep(4000);
 	return 0;
 }
