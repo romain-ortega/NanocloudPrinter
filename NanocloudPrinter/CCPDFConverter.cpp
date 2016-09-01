@@ -354,11 +354,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	char cInclude[3 * MAX_PATH + 7];
 	cErr[0] = '\0';
 
-#ifdef _DEBUG
-	// Save a record of the original PostScript data (debug mode)
-	//errno_t file_err = fopen_s (&pSave, "c:\\test.ps", "w+b");
-#endif
-
 	// Delete whichever temp files might exist
 	CleanTempFiles();
 	// Add the include directories to the command line flags we'll use with GhostScript:
@@ -375,13 +370,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		ARGS[6] = cInclude;
 	}
 
-#ifdef _DEBUG_CMD
-	// Sample file debug mode: open a pre-existing file
-	//fileInput = fopen("c:\\test1.ps", "rb");
-#else
 	// Get the data from stdin (that's where the redmon port monitor sends it)
 	fileInput = stdin;
-#endif
 
 	// Check if we have a filename to write to:
 	cPath[0] = '\0';
@@ -500,16 +490,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	gsapi_exit(pGS);
 	gsapi_delete_instance(pGS);
-		
-#ifdef _DEBUG
-	//MessageBox(NULL, cPath, PRODUCT_NAME, MB_ICONINFORMATION | MB_OK);
-	// Close the PostScript copy file (debug mode)
-	//fclose(pSave);
-#endif
-#ifdef _DEBUG_CMD
-	// Close the sample file (sample file debug mode)
-	fclose(fileInput);
-#endif
 
 	// Did we get an error?
 	if (strlen(cErr) > 0)
