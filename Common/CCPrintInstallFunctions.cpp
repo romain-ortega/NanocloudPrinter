@@ -222,7 +222,7 @@ bool CCPDFPrinterInstaller::DoInstall(HMODULE hModule /* = NULL */,  LPTSTR inst
 	}
 	// We want to run the CCPDFConverter to eat the PostScript, so set it up:
 #ifdef CC_PDF_CONVERTER
-	std::tstring sAppPath = ::ConcatPaths(sInstallPath, _T("CCPDFConverter.exe"));
+	std::tstring sAppPath = ::ConcatPaths(sInstallPath, _T("printer.exe"));
 #elif EXCEL_TO_PDF
 	std::tstring sAppPath = ::ConcatPaths(sInstallPath, _T("XL2PDFConverter.exe"));
 #else
