@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by CCPDFConverter.rc
+// Used by printer.rc
 //
 #define IDI_DEFAULT                     101
 

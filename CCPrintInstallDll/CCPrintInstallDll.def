@@ -1,5 +1,0 @@
-LIBRARY		CCPrintInstallDll
-EXPORTS
-	InstallPrinter
-    RemovePrinter
-	IsInstalled
